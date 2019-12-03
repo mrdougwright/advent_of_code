@@ -1,60 +1,62 @@
 defmodule Matrix do
-  # R2, D3, L1, U2
-  # --|
-  # | |
-  # |-|
-
   def new(size) do
     row = List.duplicate(0, size)
     List.duplicate(row, size)
   end
 
-  def move(matrix, {row, col}, "R" <> num) do
-    end_point = String.to_integer(num)
-
-    marked_grid =
-      Enum.reduce(1..end_point, matrix, fn i, acc ->
-        moving_index = col + i
-        mark(acc, {row, moving_index})
-      end)
-
-    [marked_grid, {row, col + end_point}]
+  def make_grid(x, y, marks) do
+    Enum.reduce(marks, {new(x * y), {y, 0}}, fn mark, acc ->
+      grid = elem(acc, 0)
+      ep = elem(acc, 1)
+      move(grid, ep, mark)
+    end)
   end
 
-  def move(matrix, {row, col}, "L" <> num) do
-    end_point = String.to_integer(num)
-
-    marked_grid =
-      Enum.reduce(1..end_point, matrix, fn i, acc ->
-        moving_index = col - i
-        mark(acc, {row, moving_index})
-      end)
-
-    [marked_grid, {row, col - end_point}]
+  def move(matrix, {row, col} = point, "R" <> num) do
+    {marked_grid, end_point} = walk(matrix, point, num, &move_right/3)
+    {marked_grid, {row, col + end_point}}
   end
 
-  def move(matrix, {row, col}, "U" <> num) do
-    end_point = String.to_integer(num)
-
-    marked_grid =
-      Enum.reduce(1..end_point, matrix, fn i, acc ->
-        moving_index = row - i
-        mark(acc, {moving_index, col})
-      end)
-
-    [marked_grid, {row - end_point, col}]
+  def move(matrix, {row, col} = point, "L" <> num) do
+    {marked_grid, end_point} = walk(matrix, point, num, &move_left/3)
+    {marked_grid, {row, col - end_point}}
   end
 
-  def move(matrix, {row, col}, "D" <> num) do
+  def move(matrix, {row, col} = point, "U" <> num) do
+    {marked_grid, end_point} = walk(matrix, point, num, &move_up/3)
+    {marked_grid, {row - end_point, col}}
+  end
+
+  def move(matrix, {row, col} = point, "D" <> num) do
+    {marked_grid, end_point} = walk(matrix, point, num, &move_down/3)
+    {marked_grid, {row + end_point, col}}
+  end
+
+  def walk(matrix, {row, col}, num, func) do
     end_point = String.to_integer(num)
 
-    marked_grid =
+    grid =
       Enum.reduce(1..end_point, matrix, fn i, acc ->
-        moving_index = row + i
-        mark(acc, {moving_index, col})
+        func.(acc, {row, col}, i)
       end)
 
-    [marked_grid, {row + end_point, col}]
+    {grid, end_point}
+  end
+
+  def move_left(matrix, {row, col}, step) do
+    mark(matrix, {row, col - step})
+  end
+
+  def move_right(matrix, {row, col}, step) do
+    mark(matrix, {row, col + step})
+  end
+
+  def move_up(matrix, {row, col}, step) do
+    mark(matrix, {row - step, col})
+  end
+
+  def move_down(matrix, {row, col}, step) do
+    mark(matrix, {row + step, col})
   end
 
   def mark(matrix, {row, col}) do
