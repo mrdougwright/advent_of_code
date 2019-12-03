@@ -6,19 +6,20 @@ defmodule Intcode do
   def find_inputs(output, code) do
     Enum.each(0..99, fn i ->
       Enum.each(0..99, fn j ->
-        result =
-          code
-          |> List.replace_at(1, i)
-          |> List.replace_at(2, j)
-          |> read_all()
-          |> List.first()
-
-        case result do
+        case get_zero_value(code, i, j) do
           ^output -> IO.inspect({i, j})
           _ -> :noop
         end
       end)
     end)
+  end
+
+  def get_zero_value(code, i, j) do
+    code
+    |> List.replace_at(1, i)
+    |> List.replace_at(2, j)
+    |> read_all()
+    |> List.first()
   end
 
   def read_all(code) do
