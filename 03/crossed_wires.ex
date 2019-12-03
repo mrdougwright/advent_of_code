@@ -1,75 +1,68 @@
 defmodule Matrix do
-  def new(size) do
-    row = List.duplicate(0, size)
-    List.duplicate(row, size)
+  def closest_point(wire1, wire2) do
+    map1 = lay_wires(wire1)
+    map2 = lay_wires(wire2)
+
+    intersections(map1, map2)
+    |> Enum.map(&distance/1)
+    |> Enum.min()
   end
 
-  def make_grid(x, y, marks) do
-    Enum.reduce(marks, {new(x * y), {y, 0}}, fn mark, acc ->
-      grid = elem(acc, 0)
-      ep = elem(acc, 1)
-      move(grid, ep, mark)
+  def intersections(map1, map2) do
+    map1
+    |> MapSet.intersection(map2)
+    |> MapSet.to_list()
+    |> Enum.reject(fn point -> point == {0, 0} end)
+  end
+
+  def lay_wires(directions) do
+    initial = {{0, 0}, []}
+
+    {end_point, wires} =
+      Enum.reduce(directions, initial, fn dir, {from, list} ->
+        new_list = lay_wire(list, from, dir)
+        last_point = get_last_point(new_list)
+        {last_point, new_list}
+      end)
+
+    MapSet.new(wires)
+  end
+
+  def get_last_point(list) do
+    list |> Enum.reverse() |> List.first()
+  end
+
+  def distance({x, y}) do
+    abs(x) + abs(y)
+  end
+
+  def lay_wire(list, {x, y}, direction) do
+    {func, steps} = decode(direction)
+    count = String.to_integer(steps)
+
+    Enum.reduce(0..count, list, fn i, acc ->
+      func.(acc, {x, y}, i)
     end)
   end
 
-  def move(matrix, {row, col} = point, "R" <> num) do
-    {marked_grid, end_point} = walk(matrix, point, num, &move_right/3)
-    {marked_grid, {row, col + end_point}}
+  def move_left(list, {x, y}, step) do
+    list ++ [{x - step, y}]
   end
 
-  def move(matrix, {row, col} = point, "L" <> num) do
-    {marked_grid, end_point} = walk(matrix, point, num, &move_left/3)
-    {marked_grid, {row, col - end_point}}
+  def move_right(list, {x, y}, step) do
+    list ++ [{x + step, y}]
   end
 
-  def move(matrix, {row, col} = point, "U" <> num) do
-    {marked_grid, end_point} = walk(matrix, point, num, &move_up/3)
-    {marked_grid, {row - end_point, col}}
+  def move_up(list, {x, y}, step) do
+    list ++ [{x, y + step}]
   end
 
-  def move(matrix, {row, col} = point, "D" <> num) do
-    {marked_grid, end_point} = walk(matrix, point, num, &move_down/3)
-    {marked_grid, {row + end_point, col}}
+  def move_down(list, {x, y}, step) do
+    list ++ [{x, y - step}]
   end
 
-  def walk(matrix, {row, col}, num, func) do
-    end_point = String.to_integer(num)
-
-    grid =
-      Enum.reduce(1..end_point, matrix, fn i, acc ->
-        func.(acc, {row, col}, i)
-      end)
-
-    {grid, end_point}
-  end
-
-  def move_left(matrix, {row, col}, step) do
-    mark(matrix, {row, col - step})
-  end
-
-  def move_right(matrix, {row, col}, step) do
-    mark(matrix, {row, col + step})
-  end
-
-  def move_up(matrix, {row, col}, step) do
-    mark(matrix, {row - step, col})
-  end
-
-  def move_down(matrix, {row, col}, step) do
-    mark(matrix, {row + step, col})
-  end
-
-  def mark(matrix, {row, col}) do
-    val =
-      matrix
-      |> Enum.at(row)
-      |> Enum.at(col)
-
-    new_row =
-      matrix
-      |> Enum.at(row)
-      |> List.replace_at(col, val + 1)
-
-    List.replace_at(matrix, row, new_row)
-  end
+  def decode("L" <> steps), do: {&move_left/3, steps}
+  def decode("R" <> steps), do: {&move_right/3, steps}
+  def decode("U" <> steps), do: {&move_up/3, steps}
+  def decode("D" <> steps), do: {&move_down/3, steps}
 end
