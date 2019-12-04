@@ -1,7 +1,32 @@
 defmodule Matrix do
+  def least_steps(wire1, wire2) do
+    list1 = lay_wires(wire1)
+    list2 = lay_wires(wire2)
+
+    map1 = MapSet.new(list1)
+    map2 = MapSet.new(list2)
+
+    sections = intersections(map1, map2)
+
+    [list1, list2]
+    |> Enum.map(&steps_to_intersections(&1, sections))
+  end
+
+  def steps_to_intersections(list, sections) do
+    Enum.map(sections, &{&1, steps_to_intersect(list, &1)})
+  end
+
+  def steps_to_intersect(list, section) do
+    list
+    |> Enum.split_while(fn point -> point != section end)
+    |> Tuple.to_list()
+    |> List.first()
+    |> Enum.count()
+  end
+
   def closest_point(wire1, wire2) do
-    map1 = lay_wires(wire1)
-    map2 = lay_wires(wire2)
+    map1 = lay_wires(wire1) |> MapSet.new()
+    map2 = lay_wires(wire2) |> MapSet.new()
 
     intersections(map1, map2)
     |> Enum.map(&distance/1)
@@ -25,7 +50,7 @@ defmodule Matrix do
         {last_point, new_list}
       end)
 
-    MapSet.new(wires)
+    wires
   end
 
   def get_last_point(list) do
