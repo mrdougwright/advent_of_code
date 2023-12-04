@@ -1,6 +1,6 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
-.elixir_ls/build/*
+.elixir_ls/
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
@@ -27,4 +27,6 @@ advent_of_code-*.tar
 /tmp/
 
 # Ignore config to easily hide secrets
-/config/config.exs
+/config/
+
+/input/

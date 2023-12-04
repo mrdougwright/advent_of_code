@@ -52,7 +52,7 @@ aoc 2023, 3 do
 
           case get_product(top_nums, row_nums, bot_nums) do
             [_n] -> 0
-            [a, b] = nums -> Enum.product(nums)
+            [_a, _b] = nums -> Enum.product(nums)
           end
         end
       end)
