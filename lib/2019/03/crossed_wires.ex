@@ -43,7 +43,7 @@ defmodule Matrix do
   def lay_wires(directions) do
     initial = {{0, 0}, []}
 
-    {end_point, wires} =
+    {_end_point, wires} =
       Enum.reduce(directions, initial, fn dir, {from, list} ->
         new_list = lay_wire(list, from, dir)
         last_point = get_last_point(new_list)
