@@ -23,17 +23,52 @@ aoc 2023, 4 do
     |> read()
     |> clean()
     |> Enum.reduce(0, fn {picks, nums}, acc ->
-      win_count =
-        Enum.reduce(picks, 0, fn n, acc2 ->
-          if n in nums, do: acc2 + 1, else: acc2
-        end)
+      win_count = win_count({picks, nums})
 
-      IO.inspect(win_count)
       acc + @score[win_count]
     end)
   end
 
   def p2(input) do
+    cards = input |> read() |> clean()
+    winner_index = make_index_list(cards)
+
+    Enum.reduce(winner_index, 0, fn card_list, acc ->
+      acc + count_cards(winner_index, cards)
+    end)
+  end
+
+  def count_cards(idx_list, [_c | []]), do: 1
+
+  def count_cards(idx_list, [_c | cards]) do
+    IO.inspect(idx_list)
+    next_index = make_index_list(cards)
+    length(idx_list) + count_cards(next_index, cards)
+  end
+
+  def make_index_list(cards) do
+    cards
+    |> Enum.with_index()
+    |> Enum.map(fn {card, idx} ->
+      count = win_count(card)
+
+      case count do
+        0 ->
+          []
+
+        n ->
+          range = idx + n
+          beg = idx + 1
+          Enum.to_list(beg..range)
+      end
+    end)
+    |> List.flatten()
+  end
+
+  def win_count({picks, nums}) do
+    Enum.reduce(picks, 0, fn n, acc ->
+      if n in nums, do: acc + 1, else: acc
+    end)
   end
 
   def read(input) when is_binary(input) do
