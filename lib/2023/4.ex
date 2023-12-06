@@ -31,38 +31,28 @@ aoc 2023, 4 do
 
   def p2(input) do
     cards = input |> read() |> clean()
-    winner_index = make_index_list(cards)
 
-    Enum.reduce(winner_index, 0, fn card_list, acc ->
-      acc + count_cards(winner_index, cards)
-    end)
+    list_winners(cards)
+    |> Enum.map(&{1, &1})
+    |> card_count()
+    |> Enum.reduce(0, fn {count, _b}, acc -> count + acc end)
   end
 
-  def count_cards(idx_list, [_c | []]), do: 1
+  def card_count([]), do: []
 
-  def count_cards(idx_list, [_c | cards]) do
-    IO.inspect(idx_list)
-    next_index = make_index_list(cards)
-    length(idx_list) + count_cards(next_index, cards)
+  def card_count([{count, win_count} | rest]) do
+    {copies, the_rest} = Enum.split(rest, win_count)
+
+    cards =
+      Enum.map(copies, fn {c, wc} ->
+        {c + count, wc}
+      end) ++ the_rest
+
+    [{count, win_count} | card_count(cards)]
   end
 
-  def make_index_list(cards) do
-    cards
-    |> Enum.with_index()
-    |> Enum.map(fn {card, idx} ->
-      count = win_count(card)
-
-      case count do
-        0 ->
-          []
-
-        n ->
-          range = idx + n
-          beg = idx + 1
-          Enum.to_list(beg..range)
-      end
-    end)
-    |> List.flatten()
+  def list_winners(cards) do
+    Enum.map(cards, &win_count/1)
   end
 
   def win_count({picks, nums}) do
