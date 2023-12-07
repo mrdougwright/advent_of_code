@@ -19,11 +19,13 @@ aoc 2023, 5 do
       iex> p1(example_input())
   """
   def p1(input) do
+    input
   end
 
   @doc """
       iex> p2(example_input())
   """
   def p2(input) do
+    input
   end
 end
