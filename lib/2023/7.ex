@@ -4,7 +4,7 @@ aoc 2023, 7 do
   @moduledoc """
   https://adventofcode.com/2023/day/7
   """
-  @val_map %{"A" => 14, "K" => 13, "Q" => 12, "J" => 11, "T" => 10}
+  @val_map %{"A" => 14, "K" => 13, "Q" => 12, "J" => 1, "T" => 10}
   @rank %{
     five_kind: 7,
     four_kind: 6,
@@ -24,6 +24,11 @@ aoc 2023, 7 do
   end
 
   def p2(input) do
+    input
+    |> Helpers.read()
+    |> clean()
+    |> Enum.map(&add_worth_w_joker/1)
+    |> rank_cards()
   end
 
   def rank_cards(cards) do
@@ -75,20 +80,51 @@ aoc 2023, 7 do
     v1 >= v2
   end
 
-  def add_worth({card, value}) do
+  def add_worth({hand, value}) do
     worth =
-      card
+      hand
       |> String.split("", trim: true)
-      |> Enum.reduce(%{}, fn l, acc ->
-        case acc[l] do
-          nil -> Map.put(acc, l, 1)
-          val -> Map.put(acc, l, val + 1)
-        end
-      end)
-      |> Enum.reject(fn {k, v} -> v == 1 end)
+      |> Enum.reduce(%{}, &update_map(&1, &2))
+      |> Enum.reject(fn {_k, v} -> v == 1 end)
 
-    {card, value, worth}
+    {hand, value, worth}
   end
+
+  def add_worth_w_joker({hand, value}) do
+    worth =
+      hand
+      |> String.split("", trim: true)
+      |> Enum.reduce(%{}, &update_map(&1, &2))
+      |> best_with_joker()
+      |> Enum.reject(fn {_k, v} -> v == 1 end)
+
+    {hand, value, worth}
+  end
+
+  def update_map(card, map) do
+    case map[card] do
+      nil -> Map.put(map, card, 1)
+      val -> Map.put(map, card, val + 1)
+    end
+  end
+
+  def best_with_joker(%{"J" => count} = map) do
+    map = Map.drop(map, ["J"])
+
+    if map == %{} do
+      %{"A" => 5}
+    else
+      {highest, _value} =
+        Enum.reduce(map, fn {k, v}, acc ->
+          if elem(acc, 1) >= v, do: acc, else: {k, v}
+        end)
+
+      old_val = Map.get(map, highest)
+      Map.put(map, highest, old_val + count)
+    end
+  end
+
+  def best_with_joker(map), do: map
 
   def clean(lines) do
     Enum.map(lines, fn cv ->
