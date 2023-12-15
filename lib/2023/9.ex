@@ -41,7 +41,7 @@ aoc 2023, 9 do
     [one - List.first(rest) | make_sequence(rest)]
   end
 
-  def p2(input) do
+  def p2(_input) do
   end
 
   def clean(data), do: Enum.map(data, &to_int/1)
